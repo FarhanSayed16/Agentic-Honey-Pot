@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field
 
 class Message(BaseModel):
     """Single message in a conversation."""
-    sender: str  # "scammer" or "user"
-    text: str
-    timestamp: str  # ISO-8601 format
+    sender: str = "scammer"
+    text: str = ""
+    timestamp: str = ""
 
 
 class Metadata(BaseModel):
@@ -20,10 +20,10 @@ class Metadata(BaseModel):
 
 
 class HoneypotRequest(BaseModel):
-    """Incoming request from the platform."""
+    """Incoming request from the platform. Lenient for tester compatibility."""
     sessionId: str
     message: Message
-    conversationHistory: List[Message] = Field(default_factory=list)
+    conversationHistory: Optional[List[Message]] = None  # Accept null from tester
     metadata: Optional[Metadata] = None
 
 
