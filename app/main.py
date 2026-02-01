@@ -56,14 +56,19 @@ def health():
     return {"status": "ok", "service": "agentic-honey-pot"}
 
 
-@app.post("/api/honeypot")
-def honeypot(request: HoneypotRequest, x_api_key: str = Header(..., alias="x-api-key")):
+@app.post("/api/honeypot", response_model=HoneypotResponse)
+def honeypot(
+    request: HoneypotRequest,
+    x_api_key: str | None = Header(None, alias="x-api-key"),
+    api_key: str | None = Header(None, alias="api-key"),
+):
     """
     Main honeypot endpoint.
     Accepts scam messages, returns agent reply.
-    Never returns 500 for parseable requests — always 200 with { status, reply }.
+    Auth: x-api-key or api-key header (GUVI tester may use either).
     """
-    if x_api_key != API_KEY:
+    key = x_api_key or api_key
+    if not key or key.strip() != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
     try:
@@ -108,7 +113,8 @@ def honeypot(request: HoneypotRequest, x_api_key: str = Header(..., alias="x-api
             ok = send_callback(payload)
             logger.info("Callback: sessionId=%s success=%s", session.session_id, ok)
 
-        return HoneypotResponse(status="success", reply=reply)
+        reply_text = (reply or "").strip() or FALLBACK_REPLY_AGENT_ERROR
+        return HoneypotResponse(status="success", reply=reply_text)
 
     except Exception as e:
         logger.exception("Pipeline error: %s", e)

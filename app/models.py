@@ -28,9 +28,11 @@ class HoneypotRequest(BaseModel):
 
 
 class HoneypotResponse(BaseModel):
-    """API response format."""
+    """API response format — exactly what GUVI expects."""
     status: str = "success"
-    reply: str
+    reply: str = "I'm not sure, could you please explain?"
+
+    model_config = {"extra": "forbid"}  # No extra keys
 
 
 class ExtractedIntelligence(BaseModel):
